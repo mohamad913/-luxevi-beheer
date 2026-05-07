@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUXEVI Beheer</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#09090b;--bg2:#111114;--bg3:#18181c;--bg4:#1f1f25;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#f4f4f5;--muted:#71717a;--muted2:#52525b;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;--blue:#60a5fa;--purple:#a78bfa;--cyan:#22d3ee;
+  --sidebar:200px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Bricolage Grotesque',sans-serif;min-height:100vh;overflow-x:hidden}
+.mono{font-family:'IBM Plex Mono',monospace}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);position:fixed;height:100vh;overflow-y:auto;display:flex;flex-direction:column;z-index:10}
+.content{margin-left:var(--sidebar);flex:1;padding:1.75rem 2rem;min-height:100vh}
+.sb-logo{padding:1.25rem 1rem 1rem;border-bottom:1px solid var(--border)}
+.sb-brand{font-size:17px;font-weight:800;letter-spacing:-0.3px}
+.sb-sub{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-top:2px}
+.sb-nav{padding:.75rem 0;flex:1}
+.sb-group{padding:.5rem 1rem .2rem;font-size:9px;color:var(--muted2);text-transform:uppercase;letter-spacing:.14em;font-weight:600;margin-top:.5rem}
+.sb-item{display:flex;align-items:center;gap:9px;padding:.5rem 1rem;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all .12s}
+.sb-item:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.sb-item.on{color:var(--blue);border-left-color:var(--blue);background:rgba(96,165,250,.07)}
+.sb-item .ic{width:16px;text-align:center;font-size:14px}
+.sb-bottom{padding:1rem;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+.page{display:none}.page.on{display:block}
+h1{font-size:22px;font-weight:800;letter-spacing:-.4px;margin-bottom:.25rem}
+.pg-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem}
+.grid{display:grid;gap:1rem}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.g4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:1.25rem}
+.card-title{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.75rem;font-weight:600}
+.metric{font-size:28px;font-weight:800;letter-spacing:-.5px;line-height:1}
+.metric-s{font-size:11px;color:var(--muted);margin-top:4px}
+.c-g{color:var(--green)}.c-r{color:var(--red)}.c-a{color:var(--amber)}.c-b{color:var(--blue)}.c-p{color:var(--purple)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700}
+.bg-g{background:rgba(34,197,94,.1);color:var(--green)}
+.bg-r{background:rgba(239,68,68,.1);color:var(--red)}
+.bg-a{background:rgba(245,158,11,.1);color:var(--amber)}
+.bg-b{background:rgba(96,165,250,.1);color:var(--blue)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{padding:.6rem .75rem;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:1px solid var(--border);font-weight:600}
+td{padding:.65rem .75rem;border-bottom:1px solid var(--border);color:var(--text)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:.45rem .9rem;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .12s}
+.btn-p{background:var(--blue);color:#fff}.btn-p:hover{opacity:.85}
+.btn-s{background:var(--bg4);color:var(--text);border:1px solid var(--border2)}.btn-s:hover{background:var(--bg3)}
+.btn-r{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.2)}.btn-r:hover{background:rgba(239,68,68,.25)}
+input,select,textarea{background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:.5rem .75rem;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border .12s}
+input:focus,select:focus,textarea:focus{border-color:var(--blue)}
+label{font-size:12px;color:var(--muted);font-weight:600;display:block;margin-bottom:4px}
+.form-row{margin-bottom:.85rem}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg3);border:1px solid var(--border2);border-radius:16px;padding:1.5rem;width:480px;max-height:80vh;overflow-y:auto}
+.modal h2{font-size:16px;font-weight:800;margin-bottom:1rem}
+.divider{height:1px;background:var(--border);margin:1rem 0}
+.alert{display:flex;align-items:flex-start;gap:9px;padding:10px 12px;border-radius:10px;font-size:12px;margin-bottom:8px}
+.al-a{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.18);color:var(--amber)}
+.al-r{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.18);color:var(--red)}
+.al-g{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.18);color:var(--green)}
+.al-b{background:rgba(96,165,250,.07);border:1px solid rgba(96,165,250,.18);color:var(--blue)}
+.prog{height:4px;border-radius:2px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:6px}
+.pf{height:100%;border-radius:2px}
+.report-section{margin-bottom:2rem}
+.report-title{font-size:14px;font-weight:700;margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.report-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1rem}
+.rmetric{background:var(--bg3);border-radius:10px;padding:.85rem 1rem}
+.rm-l{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:5px}
+.rm-v{font-size:18px;font-weight:800}
+@media(max-width:768px){.sidebar{width:56px}.content{margin-left:56px}.sb-brand,.sb-sub,.sb-group,.sb-bottom,.sb-item span:not(.ic){display:none}.g4,.g3,.g2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-brand">LUXEVI</div>
+    <div class="sb-sub">Dagelijks Beheer</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-group">Overzicht</div>
+    <div class="sb-item on" onclick="nav('dashboard',this)"><span class="ic">⬛</span><span>Dashboard</span></div>
+    <div class="sb-item" onclick="nav('dagboek',this)"><span class="ic">📅</span><span>Dagboek</span></div>
+    <div class="sb-group">Voorraad</div>
+    <div class="sb-item" onclick="nav('voorraad',this)"><span class="ic">📦</span><span>Alle Voorraad</span></div>
+    <div class="sb-item" onclick="nav('magazijn',this)"><span class="ic">🏭</span><span>Magazijn</span></div>
+    <div class="sb-item" onclick="nav('lvb',this)"><span class="ic">🟡</span><span>Bol LVB</span></div>
+    <div class="sb-group">Financieel</div>
+    <div class="sb-item" onclick="nav('financieel',this)"><span class="ic">💰</span><span>Winst & Verlies</span></div>
+    <div class="sb-item" onclick="nav('kosten',this)"><span class="ic">📋</span><span>Kosten</span></div>
+    <div class="sb-item" onclick="nav('ads',this)"><span class="ic">📢</span><span>Advertenties</span></div>
+    <div class="sb-group">Rapporten</div>
+    <div class="sb-item" onclick="nav('rapport',this)"><span class="ic">📊</span><span>Maandrapport</span></div>
+  </nav>
+  <div class="sb-bottom">LUXEVI v2.0</div>
+</aside>
+
+<main class="content">
+
+<!-- DASHBOARD -->
+<div class="page on" id="p-dashboard">
+  <h1>Dashboard</h1>
+  <div class="pg-sub" id="dash-datum">Laden...</div>
+
+  <div class="grid g4" style="margin-bottom:1rem" id="dash-metrics">
+    <div class="card"><div class="card-title">Omzet vandaag</div><div class="metric c-g" id="d-omzet">€0</div><div class="metric-s">Netto verkopen</div></div>
+    <div class="card"><div class="card-title">Winst vandaag</div><div class="metric" id="d-winst">€0</div><div class="metric-s">Na alle kosten</div></div>
+    <div class="card"><div class="card-title">Orders vandaag</div><div class="metric c-b" id="d-orders">0</div><div class="metric-s">Bestellingen</div></div>
+    <div class="card"><div class="card-title">Marge</div><div class="metric c-a" id="d-marge">0%</div><div class="metric-s">Winstmarge</div></div>
+  </div>
+
+  <div class="grid g2" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-title">Deze maand</div>
+      <div class="grid g2" style="gap:.75rem">
+        <div><div class="metric-s">Omzet</div><div style="font-size:20px;font-weight:800;color:var(--green)" id="m-omzet">€0</div></div>
+        <div><div class="metric-s">Winst</div><div style="font-size:20px;font-weight:800" id="m-winst">€0</div></div>
+        <div><div class="metric-s">Kosten</div><div style="font-size:20px;font-weight:800;color:var(--red)" id="m-kosten">€0</div></div>
+        <div><div class="metric-s">Marge</div><div style="font-size:20px;font-weight:800;color:var(--amber)" id="m-marge">0%</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Voorraad waarschuwingen</div>
+      <div id="voorraad-alerts">
+        <div class="alert al-g">✅ Alle voorraad op peil</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      Recente dagboek entries
+      <button class="btn btn-p" onclick="nav('dagboek',document.querySelector('[onclick*=dagboek]'))">+ Dag invoeren</button>
+    </div>
+    <table>
+      <thead><tr><th>Datum</th><th>Omzet</th><th>Orders</th><th>Kosten</th><th>Winst</th><th>Marge</th></tr></thead>
+      <tbody id="dash-tabel"><tr><td colspan="6" style="color:var(--muted);text-align:center;padding:1.5rem">Nog geen data ingevoerd</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- DAGBOEK -->
+<div class="page" id="p-dagboek">
+  <h1>Dagboek</h1>
+  <div class="pg-sub">Voer dagelijkse gegevens in van bol.com en MarktMentor</div>
+
+  <div class="grid g2" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-title">Nieuwe dag invoeren</div>
+      <div class="form-row"><label>Datum</label><input type="date" id="dag-datum" style="width:100%"></div>
+      <div class="form-row"><label>Bruto omzet (€)</label><input type="number" id="dag-omzet" placeholder="0.00" style="width:100%" step="0.01"></div>
+      <div class="form-row"><label>Aantal orders</label><input type="number" id="dag-orders" placeholder="0" style="width:100%"></div>
+      <div class="form-row"><label>Retouren (€)</label><input type="number" id="dag-retouren" placeholder="0.00" style="width:100%" step="0.01"></div>
+      <div class="divider"></div>
+      <div class="form-row"><label>Verzendkosten (€)</label><input type="number" id="dag-verzend" placeholder="0.00" style="width:100%" step="0.01"></div>
+      <div class="form-row"><label>Commissie bol.com (€)</label><input type="number" id="dag-commissie" placeholder="0.00" style="width:100%" step="0.01"></div>
+      <div class="form-row"><label>Advertentiekosten (€)</label><input type="number" id="dag-ads" placeholder="0.00" style="width:100%" step="0.01"></div>
+      <div class="form-row"><label>Overige kosten (€)</label><input type="number" id="dag-overig" placeholder="0.00" style="width:100%" step="0.01"></div>
+      <div class="form-row"><label>Notities</label><textarea id="dag-notitie" rows="2" style="width:100%" placeholder="Bijzonderheden vandaag..."></textarea></div>
+      <button class="btn btn-p" style="width:100%" onclick="saveDag()">💾 Opslaan</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Bol.com haal-instructies</div>
+      <div class="alert al-b" style="margin-bottom:.75rem">📌 Haal deze gegevens op uit bol.com & MarktMentor</div>
+      <div style="font-size:12.5px;line-height:1.8;color:var(--muted)">
+        <strong style="color:var(--text)">MarktMentor → Winst & Verlies:</strong><br>
+        • Bruto omzet (dag/week)<br>
+        • Commissie kosten<br>
+        • Verzendkosten<br>
+        • Advertentiekosten<br><br>
+        <strong style="color:var(--text)">Bol.com → Bestellingen:</strong><br>
+        • Aantal orders vandaag<br>
+        • Retouren verwerkt<br><br>
+        <strong style="color:var(--text)">Bol.com → LVB Voorraad:</strong><br>
+        • Actuele voorraad per artikel<br>
+        • LVB zendingen onderweg
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Alle dagboek entries</div>
+    <table>
+      <thead><tr><th>Datum</th><th>Omzet</th><th>Orders</th><th>Retouren</th><th>Kosten</th><th>Winst</th><th>Marge</th><th>Notitie</th><th></th></tr></thead>
+      <tbody id="dag-tabel"><tr><td colspan="9" style="color:var(--muted);text-align:center;padding:1.5rem">Nog geen entries</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- VOORRAAD -->
+<div class="page" id="p-voorraad">
+  <h1>Alle Voorraad</h1>
+  <div class="pg-sub">Overzicht van alle locaties: Magazijn + Onderweg + Bol LVB</div>
+
+  <div class="grid g4" style="margin-bottom:1rem">
+    <div class="card"><div class="card-title">Totaal artikelen</div><div class="metric" id="v-totaal-art">0</div></div>
+    <div class="card"><div class="card-title">In magazijn</div><div class="metric c-b" id="v-mag-tot">0</div></div>
+    <div class="card"><div class="card-title">Bij bol (LVB)</div><div class="metric c-g" id="v-bol-tot">0</div></div>
+    <div class="card"><div class="card-title">Onderweg</div><div class="metric c-a" id="v-ond-tot">0</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      Voorraad per artikel
+      <button class="btn btn-p" onclick="openArtikelModal()">+ Artikel toevoegen</button>
+    </div>
+    <table>
+      <thead><tr><th>Artikel</th><th>EAN</th><th>Inkoopprijs</th><th>🏭 Magazijn</th><th>🚚 Onderweg</th><th>🟡 Bol LVB</th><th>Totaal</th><th>Waarde</th><th>Status</th><th></th></tr></thead>
+      <tbody id="voorraad-tabel"><tr><td colspan="10" style="color:var(--muted);text-align:center;padding:1.5rem">Nog geen artikelen</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MAGAZIJN -->
+<div class="page" id="p-magazijn">
+  <h1>Magazijn</h1>
+  <div class="pg-sub">Eigen voorraad beheer — inkomend en uitgaand</div>
+
+  <div class="grid g2" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-title">Ontvangst boeken</div>
+      <div class="form-row"><label>Artikel</label>
+        <select id="mag-artikel" style="width:100%"><option value="">-- Selecteer artikel --</option></select>
+      </div>
+      <div class="form-row"><label>Aantal ontvangen</label><input type="number" id="mag-aantal" placeholder="0" style="width:100%"></div>
+      <div class="form-row"><label>Inkoopprijs per stuk (€)</label><input type="number" id="mag-prijs" placeholder="0.00" style="width:100%" step="0.01"></div>
+      <div class="form-row"><label>Leverancier</label><input type="text" id="mag-leverancier" placeholder="Naam leverancier" style="width:100%"></div>
+      <button class="btn btn-p" style="width:100%;margin-bottom:.5rem" onclick="boekOntvangst()">📥 Ontvangst boeken</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Zending naar Bol aanmaken</div>
+      <div class="form-row"><label>Artikel</label>
+        <select id="zend-artikel" style="width:100%"><option value="">-- Selecteer artikel --</option></select>
+      </div>
+      <div class="form-row"><label>Aantal verzenden</label><input type="number" id="zend-aantal" placeholder="0" style="width:100%"></div>
+      <div class="form-row"><label>Verwachte aankomst bol</label><input type="date" id="zend-datum" style="width:100%"></div>
+      <button class="btn btn-p" style="width:100%;margin-bottom:.5rem" onclick="maakZending()">🚚 Zending aanmaken</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Magazijn bewegingen</div>
+    <table>
+      <thead><tr><th>Datum</th><th>Artikel</th><th>Type</th><th>Aantal</th><th>Prijs</th><th>Info</th></tr></thead>
+      <tbody id="mag-tabel"><tr><td colspan="6" style="color:var(--muted);text-align:center;padding:1.5rem">Geen bewegingen</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- LVB -->
+<div class="page" id="p-lvb">
+  <h1>Bol LVB Voorraad</h1>
+  <div class="pg-sub">Voorraad bij bol.com fulfillment center</div>
+
+  <div class="grid g3" style="margin-bottom:1rem">
+    <div class="card"><div class="card-title">Verkoopbaar LVB</div><div class="metric c-g" id="lvb-verkoop">0</div></div>
+    <div class="card"><div class="card-title">Niet verkoopbaar</div><div class="metric c-r" id="lvb-niet">0</div></div>
+    <div class="card"><div class="card-title">Opslagkosten/mnd</div><div class="metric c-a" id="lvb-opslag">€0</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      LVB Voorraad bijwerken
+      <button class="btn btn-s" onclick="openLvbModal()">✏️ Bijwerken</button>
+    </div>
+    <table>
+      <thead><tr><th>Artikel</th><th>Verkoopbaar</th><th>Niet verkoopbaar</th><th>Geretourneerd</th><th>Totaal</th><th>Dagen voorraad</th></tr></thead>
+      <tbody id="lvb-tabel"><tr><td colspan="6" style="color:var(--muted);text-align:center;padding:1.5rem">Geen LVB data</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-top:1rem">
+    <div class="card-title">Zendingen onderweg naar bol</div>
+    <table>
+      <thead><tr><th>Artikel</th><th>Aantal</th><th>Aangemaakt</th><th>Verwacht bij bol</th><th>Status</th><th></th></tr></thead>
+      <tbody id="zend-tabel"><tr><td colspan="6" style="color:var(--muted);text-align:center;padding:1.5rem">Geen zendingen onderweg</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- FINANCIEEL -->
+<div class="page" id="p-financieel">
+  <h1>Winst & Verlies</h1>
+  <div class="pg-sub">Gebaseerd op dagboek data</div>
+
+  <div style="display:flex;gap:.75rem;margin-bottom:1rem;align-items:center">
+    <label style="margin:0">Maand:</label>
+    <select id="fin-maand" onchange="renderFinancieel()" style="width:180px">
+      <option value="all">Alle maanden</option>
+    </select>
+  </div>
+
+  <div class="grid g4" style="margin-bottom:1rem">
+    <div class="card"><div class="card-title">Bruto omzet</div><div class="metric c-g" id="fin-omzet">€0</div></div>
+    <div class="card"><div class="card-title">Totale kosten</div><div class="metric c-r" id="fin-kosten">€0</div></div>
+    <div class="card"><div class="card-title">Nettowinst</div><div class="metric" id="fin-winst">€0</div></div>
+    <div class="card"><div class="card-title">Winstmarge</div><div class="metric c-a" id="fin-marge">0%</div></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <div class="card-title">Kostenverdeling</div>
+      <div id="fin-kosten-detail" style="font-size:13px"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Dagelijks overzicht</div>
+      <table>
+        <thead><tr><th>Datum</th><th>Omzet</th><th>Winst</th><th>Marge</th></tr></thead>
+        <tbody id="fin-tabel"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- KOSTEN -->
+<div class="page" id="p-kosten">
+  <h1>Vaste Kosten</h1>
+  <div class="pg-sub">Maandelijkse vaste kosten beheren</div>
+
+  <div class="grid g2" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-title">Nieuwe kost toevoegen</div>
+      <div class="form-row"><label>Omschrijving</label><input type="text" id="kost-naam" placeholder="bv. Magazijnhuur" style="width:100%"></div>
+      <div class="form-row"><label>Bedrag per maand (€)</label><input type="number" id="kost-bedrag" placeholder="0.00" style="width:100%" step="0.01"></div>
+      <div class="form-row"><label>Categorie</label>
+        <select id="kost-cat" style="width:100%">
+          <option>Huur</option><option>Abonnement</option><option>Transport</option><option>Verpakking</option><option>Verzending</option><option>Overig</option>
+        </select>
+      </div>
+      <button class="btn btn-p" style="width:100%" onclick="saveKost()">➕ Toevoegen</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Totaal vaste kosten/maand</div>
+      <div class="metric c-r" id="kost-totaal">€0</div>
+      <div class="metric-s" style="margin-top:.5rem">Per dag: <span id="kost-per-dag" style="color:var(--amber)">€0</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Alle vaste kosten</div>
+    <table>
+      <thead><tr><th>Omschrijving</th><th>Categorie</th><th>Per maand</th><th>Per dag</th><th></th></tr></thead>
+      <tbody id="kost-tabel"><tr><td colspan="5" style="color:var(--muted);text-align:center;padding:1.5rem">Geen kosten ingevoerd</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ADS -->
+<div class="page" id="p-ads">
+  <h1>Advertenties</h1>
+  <div class="pg-sub">Bol.com advertentie campagnes bijhouden</div>
+
+  <div class="grid g2" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-title">Campagne toevoegen/bijwerken</div>
+      <div class="form-row"><label>Campagne naam</label><input type="text" id="ads-naam" placeholder="Campagne naam" style="width:100%"></div>
+      <div class="form-row"><label>Budget besteed (€)</label><input type="number" id="ads-besteed" placeholder="0.00" style="width:100%" step="0.01"></div>
+      <div class="form-row"><label>Omzet via ads (€)</label><input type="number" id="ads-omzet" placeholder="0.00" style="width:100%" step="0.01"></div>
+      <div class="form-row"><label>Klikken</label><input type="number" id="ads-klikken" placeholder="0" style="width:100%"></div>
+      <div class="form-row"><label>Maand</label><input type="month" id="ads-maand" style="width:100%"></div>
+      <button class="btn btn-p" style="width:100%" onclick="saveAds()">💾 Opslaan</button>
+    </div>
+    <div class="grid" style="gap:.75rem;align-content:start">
+      <div class="card"><div class="card-title">Totaal besteed</div><div class="metric c-r" id="ads-tot-besteed">€0</div></div>
+      <div class="card"><div class="card-title">ROAS</div><div class="metric c-g" id="ads-roas">0x</div><div class="metric-s">Return on ad spend</div></div>
+      <div class="card"><div class="card-title">Omzet via ads</div><div class="metric c-b" id="ads-tot-omzet">€0</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Campagne overzicht</div>
+    <table>
+      <thead><tr><th>Maand</th><th>Campagne</th><th>Besteed</th><th>Omzet</th><th>ROAS</th><th>Klikken</th><th></th></tr></thead>
+      <tbody id="ads-tabel"><tr><td colspan="7" style="color:var(--muted);text-align:center;padding:1.5rem">Geen campagnes</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- RAPPORT -->
+<div class="page" id="p-rapport">
+  <h1>Maandrapport</h1>
+  <div class="pg-sub">Automatisch gegenereerde rapporten op basis van jouw data</div>
+
+  <div style="display:flex;gap:.75rem;margin-bottom:1.5rem;align-items:center">
+    <label style="margin:0">Selecteer maand:</label>
+    <select id="rapp-maand" style="width:180px"></select>
+    <button class="btn btn-p" onclick="genereerRapport()">📊 Rapport genereren</button>
+    <button class="btn btn-s" onclick="printRapport()">🖨️ Afdrukken</button>
+  </div>
+
+  <div id="rapport-inhoud">
+    <div class="alert al-b">Selecteer een maand en klik op "Rapport genereren"</div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="modal-artikel">
+  <div class="modal">
+    <h2>Artikel toevoegen</h2>
+    <div class="form-row"><label>Artikelnaam</label><input type="text" id="art-naam" placeholder="bv. Kaasschaaf Premium" style="width:100%"></div>
+    <div class="form-row"><label>EAN barcode</label><input type="text" id="art-ean" placeholder="8719123456789" style="width:100%"></div>
+    <div class="form-row"><label>Inkoopprijs (€)</label><input type="number" id="art-ink" placeholder="0.00" style="width:100%" step="0.01"></div>
+    <div class="form-row"><label>Verkoopprijs (€)</label><input type="number" id="art-verk" placeholder="0.00" style="width:100%" step="0.01"></div>
+    <div class="form-row"><label>Min. voorraad (waarschuwing)</label><input type="number" id="art-min" placeholder="5" style="width:100%"></div>
+    <div class="form-row"><label>Beginvoorraad magazijn</label><input type="number" id="art-mag" placeholder="0" style="width:100%"></div>
+    <div style="display:flex;gap:.5rem;margin-top:.5rem">
+      <button class="btn btn-p" style="flex:1" onclick="saveArtikel()">✅ Opslaan</button>
+      <button class="btn btn-s" style="flex:1" onclick="closeModal('modal-artikel')">Annuleren</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-lvb">
+  <div class="modal">
+    <h2>LVB Voorraad bijwerken</h2>
+    <div class="form-row"><label>Artikel</label>
+      <select id="lvb-art" style="width:100%"><option value="">-- Selecteer --</option></select>
+    </div>
+    <div class="form-row"><label>Verkoopbaar</label><input type="number" id="lvb-v" placeholder="0" style="width:100%"></div>
+    <div class="form-row"><label>Niet verkoopbaar</label><input type="number" id="lvb-nv" placeholder="0" style="width:100%"></div>
+    <div class="form-row"><label>Geretourneerd</label><input type="number" id="lvb-r" placeholder="0" style="width:100%"></div>
+    <div class="form-row"><label>Gem. verkopen per dag</label><input type="number" id="lvb-vd" placeholder="0" style="width:100%" step="0.1"></div>
+    <div style="display:flex;gap:.5rem;margin-top:.5rem">
+      <button class="btn btn-p" style="flex:1" onclick="saveLvb()">✅ Opslaan</button>
+      <button class="btn btn-s" style="flex:1" onclick="closeModal('modal-lvb')">Annuleren</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== STATE ====================
+let state = JSON.parse(localStorage.getItem('luxevi') || '{}');
+if(!state.artikelen) state.artikelen = [];
+if(!state.dagboek) state.dagboek = [];
+if(!state.kosten) state.kosten = [];
+if(!state.ads) state.ads = [];
+if(!state.magazijn_bewegingen) state.magazijn_bewegingen = [];
+if(!state.zendingen) state.zendingen = [];
+if(!state.lvb) state.lvb = {};
+
+function save(){localStorage.setItem('luxevi',JSON.stringify(state))}
+function eur(n){return'€'+(+n||0).toFixed(2).replace('.',',')}
+function today(){return new Date().toISOString().slice(0,10)}
+
+// ==================== NAV ====================
+function nav(page, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('on'));
+  document.getElementById('p-'+page).classList.add('on');
+  if(el) el.classList.add('on');
+  renderPage(page);
+}
+
+function renderPage(p){
+  if(p==='dashboard') renderDashboard();
+  if(p==='dagboek') renderDagboek();
+  if(p==='voorraad') renderVoorraad();
+  if(p==='magazijn') renderMagazijn();
+  if(p==='lvb') renderLvb();
+  if(p==='financieel') renderFinancieel();
+  if(p==='kosten') renderKosten();
+  if(p==='ads') renderAds();
+  if(p==='rapport') renderRapportMaanden();
+}
+
+// ==================== DASHBOARD ====================
+function renderDashboard(){
+  const now = new Date();
+  document.getElementById('dash-datum').textContent = now.toLocaleDateString('nl-NL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const tod = today();
+  const dagEntry = state.dagboek.find(d=>d.datum===tod)||{omzet:0,orders:0,kosten:0,winst:0,marge:0};
+  document.getElementById('d-omzet').textContent = eur(dagEntry.omzet||0);
+  document.getElementById('d-orders').textContent = dagEntry.orders||0;
+  const w = (dagEntry.omzet||0)-(dagEntry.kosten||0);
+  const m = (dagEntry.omzet||0)?((w/(dagEntry.omzet||0))*100).toFixed(1):0;
+  document.getElementById('d-winst').textContent = eur(w);
+  document.getElementById('d-winst').className = 'metric '+(w>=0?'c-g':'c-r');
+  document.getElementById('d-marge').textContent = m+'%';
+
+  const maand = tod.slice(0,7);
+  const entries = state.dagboek.filter(d=>d.datum.slice(0,7)===maand);
+  const mOmzet = entries.reduce((s,d)=>s+(d.omzet||0),0);
+  const mKosten = entries.reduce((s,d)=>s+(d.kosten||0),0);
+  const mWinst = mOmzet - mKosten;
+  const mMarge = mOmzet ? ((mWinst/mOmzet)*100).toFixed(1) : 0;
+  document.getElementById('m-omzet').textContent = eur(mOmzet);
+  document.getElementById('m-kosten').textContent = eur(mKosten);
+  document.getElementById('m-winst').textContent = eur(mWinst);
+  document.getElementById('m-winst').className = 'font-size:20px;font-weight:800;color:'+(mWinst>=0?'var(--green)':'var(--red)');
+  document.getElementById('m-marge').textContent = mMarge+'%';
+
+  // Alerts voorraad
+  const alerts = state.artikelen.filter(a=>{
+    const tot = (a.mag||0)+(a.bol||0)+(a.ond||0);
+    return tot <= (a.min||5);
+  });
+  const alertDiv = document.getElementById('voorraad-alerts');
+  if(alerts.length===0){
+    alertDiv.innerHTML = '<div class="alert al-g">✅ Alle voorraad op peil</div>';
+  } else {
+    alertDiv.innerHTML = alerts.map(a=>`<div class="alert al-r">⚠️ <strong>${a.naam}</strong> — nog ${(a.mag||0)+(a.bol||0)+(a.ond||0)} stuks</div>`).join('');
+  }
+
+  const recent = [...state.dagboek].sort((a,b)=>b.datum.localeCompare(a.datum)).slice(0,7);
+  const tb = document.getElementById('dash-tabel');
+  if(!recent.length){tb.innerHTML='<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:1.5rem">Nog geen data</td></tr>';return;}
+  tb.innerHTML = recent.map(d=>{
+    const w2=((d.omzet||0)-(d.kosten||0));
+    const m2=(d.omzet||0)?((w2/(d.omzet||0))*100).toFixed(1):0;
+    return `<tr><td>${d.datum}</td><td class="c-g">${eur(d.omzet)}</td><td>${d.orders||0}</td><td class="c-r">${eur(d.kosten)}</td><td class="${w2>=0?'c-g':'c-r'}">${eur(w2)}</td><td class="c-a">${m2}%</td></tr>`;
+  }).join('');
+}
+
+// ==================== DAGBOEK ====================
+function saveDag(){
+  const datum = document.getElementById('dag-datum').value || today();
+  const omzet = parseFloat(document.getElementById('dag-omzet').value)||0;
+  const orders = parseInt(document.getElementById('dag-orders').value)||0;
+  const retouren = parseFloat(document.getElementById('dag-retouren').value)||0;
+  const verzend = parseFloat(document.getElementById('dag-verzend').value)||0;
+  const commissie = parseFloat(document.getElementById('dag-commissie').value)||0;
+  const ads = parseFloat(document.getElementById('dag-ads').value)||0;
+  const overig = parseFloat(document.getElementById('dag-overig').value)||0;
+  const notitie = document.getElementById('dag-notitie').value;
+
+  const vasteKosten = state.kosten.reduce((s,k)=>s+(k.bedrag||0),0)/30;
+  const kosten = retouren+verzend+commissie+ads+overig+vasteKosten;
+  const netto = omzet - retouren;
+
+  const entry = {datum,omzet:netto,orders,retouren,verzend,commissie,ads_k:ads,overig,kosten,notitie};
+  const idx = state.dagboek.findIndex(d=>d.datum===datum);
+  if(idx>=0) state.dagboek[idx]=entry; else state.dagboek.push(entry);
+  save();
+
+  ['dag-omzet','dag-orders','dag-retouren','dag-verzend','dag-commissie','dag-ads','dag-overig','dag-notitie'].forEach(id=>document.getElementById(id).value='');
+  renderDagboek();
+  alert('✅ Dag opgeslagen!');
+}
+
+function renderDagboek(){
+  document.getElementById('dag-datum').value = today();
+  const sorted = [...state.dagboek].sort((a,b)=>b.datum.localeCompare(a.datum));
+  const tb = document.getElementById('dag-tabel');
+  if(!sorted.length){tb.innerHTML='<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:1.5rem">Nog geen entries</td></tr>';return;}
+  tb.innerHTML = sorted.map((d,i)=>{
+    const w=(d.omzet||0)-(d.kosten||0);
+    const m=(d.omzet||0)?((w/(d.omzet||0))*100).toFixed(1):0;
+    return `<tr><td>${d.datum}</td><td class="c-g">${eur(d.omzet)}</td><td>${d.orders||0}</td><td class="c-r">${eur(d.retouren||0)}</td><td class="c-r">${eur(d.kosten)}</td><td class="${w>=0?'c-g':'c-r'}">${eur(w)}</td><td class="c-a">${m}%</td><td style="color:var(--muted);max-width:150px;overflow:hidden;text-overflow:ellipsis">${d.notitie||''}</td><td><button class="btn btn-r" onclick="delDag(${i})">✕</button></td></tr>`;
+  }).join('');
+}
+
+function delDag(i){if(confirm('Verwijderen?')){state.dagboek.splice(i,1);save();renderDagboek();}}
+
+// ==================== ARTIKELEN ====================
+function openArtikelModal(){document.getElementById('modal-artikel').classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+
+function saveArtikel(){
+  const a={
+    naam:document.getElementById('art-naam').value,
+    ean:document.getElementById('art-ean').value,
+    ink:parseFloat(document.getElementById('art-ink').value)||0,
+    verk:parseFloat(document.getElementById('art-verk').value)||0,
+    min:parseInt(document.getElementById('art-min').value)||5,
+    mag:parseInt(document.getElementById('art-mag').value)||0,
+    bol:0,ond:0
+  };
+  if(!a.naam){alert('Vul een naam in');return;}
+  state.artikelen.push(a);
+  save();
+  closeModal('modal-artikel');
+  ['art-naam','art-ean','art-ink','art-verk','art-min','art-mag'].forEach(id=>document.getElementById(id).value='');
+  renderVoorraad();
+  updateArtSelect();
+}
+
+function updateArtSelect(){
+  const opts = state.artikelen.map((a,i)=>`<option value="${i}">${a.naam}</option>`).join('');
+  ['mag-artikel','zend-artikel','lvb-art'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML='<option value="">-- Selecteer --</option>'+opts;
+  });
+}
+
+function renderVoorraad(){
+  updateArtSelect();
+  const tb = document.getElementById('voorraad-tabel');
+  document.getElementById('v-totaal-art').textContent = state.artikelen.length;
+  document.getElementById('v-mag-tot').textContent = state.artikelen.reduce((s,a)=>s+(a.mag||0),0);
+  document.getElementById('v-bol-tot').textContent = state.artikelen.reduce((s,a)=>s+(a.bol||0),0);
+  document.getElementById('v-ond-tot').textContent = state.artikelen.reduce((s,a)=>s+(a.ond||0),0);
+  if(!state.artikelen.length){tb.innerHTML='<tr><td colspan="10" style="color:var(--muted);text-align:center;padding:1.5rem">Geen artikelen</td></tr>';return;}
+  tb.innerHTML = state.artikelen.map((a,i)=>{
+    const tot=(a.mag||0)+(a.bol||0)+(a.ond||0);
+    const waarde=tot*(a.ink||0);
+    const laag=tot<=(a.min||5);
+    const status=laag?'<span class="badge bg-r">⚠️ Laag</span>':'<span class="badge bg-g">✅ OK</span>';
+    return `<tr><td><strong>${a.naam}</strong></td><td style="color:var(--muted);font-size:11px">${a.ean||'-'}</td><td>${eur(a.ink)}</td><td class="c-b">${a.mag||0}</td><td class="c-a">${a.ond||0}</td><td class="c-g">${a.bol||0}</td><td><strong>${tot}</strong></td><td class="c-a">${eur(waarde)}</td><td>${status}</td><td><button class="btn btn-r" onclick="delArtikel(${i})">✕</button></td></tr>`;
+  }).join('');
+}
+
+function delArtikel(i){if(confirm('Artikel verwijderen?')){state.artikelen.splice(i,1);save();renderVoorraad();}}
+
+// ==================== MAGAZIJN ====================
+function boekOntvangst(){
+  const idx = parseInt(document.getElementById('mag-artikel').value);
+  const aantal = parseInt(document.getElementById('mag-aantal').value)||0;
+  const prijs = parseFloat(document.getElementById('mag-prijs').value)||0;
+  const lev = document.getElementById('mag-leverancier').value;
+  if(isNaN(idx)||!aantal){alert('Vul artikel en aantal in');return;}
+  state.artikelen[idx].mag = (state.artikelen[idx].mag||0)+aantal;
+  if(prijs) state.artikelen[idx].ink = prijs;
+  state.magazijn_bewegingen.push({datum:today(),artikel:state.artikelen[idx].naam,type:'Ontvangst',aantal,prijs,info:lev});
+  save();
+  ['mag-aantal','mag-prijs','mag-leverancier'].forEach(id=>document.getElementById(id).value='');
+  renderMagazijn();
+  renderVoorraad();
+  alert('✅ Ontvangst geboekt!');
+}
+
+function maakZending(){
+  const idx = parseInt(document.getElementById('zend-artikel').value);
+  const aantal = parseInt(document.getElementById('zend-aantal').value)||0;
+  const datum = document.getElementById('zend-datum').value;
+  if(isNaN(idx)||!aantal){alert('Vul artikel en aantal in');return;}
+  if((state.artikelen[idx].mag||0)<aantal){alert('Niet genoeg in magazijn!');return;}
+  state.artikelen[idx].mag -= aantal;
+  state.artikelen[idx].ond = (state.artikelen[idx].ond||0)+aantal;
+  state.zendingen.push({artikel:state.artikelen[idx].naam,aantal,aangemaakt:today(),verwacht:datum,status:'Onderweg'});
+  state.magazijn_bewegingen.push({datum:today(),artikel:state.artikelen[idx].naam,type:'Naar bol',aantal,prijs:0,info:'LVB zending'});
+  save();
+  renderMagazijn();
+  renderVoorraad();
+  alert('🚚 Zending aangemaakt!');
+}
+
+function renderMagazijn(){
+  updateArtSelect();
+  const tb = document.getElementById('mag-tabel');
+  const sorted = [...state.magazijn_bewegingen].sort((a,b)=>b.datum.localeCompare(a.datum));
+  if(!sorted.length){tb.innerHTML='<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:1.5rem">Geen bewegingen</td></tr>';return;}
+  tb.innerHTML = sorted.map(m=>`<tr><td>${m.datum}</td><td>${m.artikel}</td><td><span class="badge ${m.type==='Ontvangst'?'bg-g':'bg-a'}">${m.type}</span></td><td>${m.aantal}</td><td>${m.prijs?eur(m.prijs):'-'}</td><td style="color:var(--muted)">${m.info||''}</td></tr>`).join('');
+}
+
+// ==================== LVB ====================
+function openLvbModal(){updateArtSelect();document.getElementById('modal-lvb').classList.add('open');}
+function saveLvb(){
+  const idx=parseInt(document.getElementById('lvb-art').value);
+  const v=parseInt(document.getElementById('lvb-v').value)||0;
+  const nv=parseInt(document.getElementById('lvb-nv').value)||0;
+  const r=parseInt(document.getElementById('lvb-r').value)||0;
+  const vd=parseFloat(document.getElementById('lvb-vd').value)||0;
+  if(isNaN(idx)){alert('Selecteer een artikel');return;}
+  // Bijwerken bol voorraad
+  const oud = state.artikelen[idx].bol||0;
+  state.artikelen[idx].bol = v;
+  state.lvb[idx]={v,nv,r,vd};
+  save();
+  closeModal('modal-lvb');
+  renderLvb();
+  renderVoorraad();
+}
+
+function renderLvb(){
+  updateArtSelect();
+  // Zendingen
+  const ztb = document.getElementById('zend-tabel');
+  if(!state.zendingen.length){ztb.innerHTML='<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:1.5rem">Geen zendingen</td></tr>';}
+  else ztb.innerHTML = state.zendingen.map((z,i)=>`<tr><td>${z.artikel}</td><td>${z.aantal}</td><td>${z.aangemaakt}</td><td>${z.verwacht||'-'}</td><td><span class="badge bg-a">${z.status}</span></td><td><button class="btn btn-g" style="background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.2);font-size:11px;padding:3px 8px;border-radius:6px" onclick="bevestigZending(${i})">✅ Ontvangen</button></td></tr>`).join('');
+
+  // LVB tabel
+  const ltb = document.getElementById('lvb-tabel');
+  const rows = state.artikelen.map((a,i)=>{
+    const l=state.lvb[i]||{v:a.bol||0,nv:0,r:0,vd:0};
+    const dagen = l.vd>0 ? Math.round(l.v/l.vd) : '—';
+    const kleur = typeof dagen==='number'?(dagen<7?'c-r':dagen<14?'c-a':'c-g'):'';
+    return `<tr><td>${a.naam}</td><td class="c-g">${l.v}</td><td class="c-r">${l.nv}</td><td class="c-a">${l.r}</td><td>${l.v+l.nv+l.r}</td><td class="${kleur}">${dagen} ${typeof dagen==='number'?'dagen':''}</td></tr>`;
+  });
+  ltb.innerHTML = rows.length ? rows.join('') : '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:1.5rem">Geen data</td></tr>';
+
+  const totV = Object.values(state.lvb).reduce((s,l)=>s+(l.v||0),0);
+  const totNV = Object.values(state.lvb).reduce((s,l)=>s+(l.nv||0),0);
+  document.getElementById('lvb-verkoop').textContent = totV;
+  document.getElementById('lvb-niet').textContent = totNV;
+}
+
+function bevestigZending(i){
+  const z=state.zendingen[i];
+  const artIdx=state.artikelen.findIndex(a=>a.naam===z.artikel);
+  if(artIdx>=0){state.artikelen[artIdx].ond=Math.max(0,(state.artikelen[artIdx].ond||0)-z.aantal);state.artikelen[artIdx].bol=(state.artikelen[artIdx].bol||0)+z.aantal;}
+  state.zendingen.splice(i,1);
+  save();renderLvb();renderVoorraad();
+}
+
+// ==================== FINANCIEEL ====================
+function renderFinancieel(){
+  // Vul maand dropdown
+  const maanden = [...new Set(state.dagboek.map(d=>d.datum.slice(0,7)))].sort().reverse();
+  const sel = document.getElementById('fin-maand');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="all">Alle maanden</option>'+maanden.map(m=>`<option value="${m}">${m}</option>`).join('');
+  if(cur) sel.value = cur;
+
+  const filter = sel.value;
+  const entries = filter==='all' ? state.dagboek : state.dagboek.filter(d=>d.datum.slice(0,7)===filter);
+  const omzet = entries.reduce((s,d)=>s+(d.omzet||0),0);
+  const kosten = entries.reduce((s,d)=>s+(d.kosten||0),0);
+  const winst = omzet-kosten;
+  const marge = omzet?((winst/omzet)*100).toFixed(1):0;
+
+  document.getElementById('fin-omzet').textContent = eur(omzet);
+  document.getElementById('fin-kosten').textContent = eur(kosten);
+  document.getElementById('fin-winst').textContent = eur(winst);
+  document.getElementById('fin-winst').className = 'metric '+(winst>=0?'c-g':'c-r');
+  document.getElementById('fin-marge').textContent = marge+'%';
+
+  // Detail
+  const verzend=entries.reduce((s,d)=>s+(d.verzend||0),0);
+  const comm=entries.reduce((s,d)=>s+(d.commissie||0),0);
+  const ads=entries.reduce((s,d)=>s+(d.ads_k||0),0);
+  const ret=entries.reduce((s,d)=>s+(d.retouren||0),0);
+  const ov=entries.reduce((s,d)=>s+(d.overig||0),0);
+  document.getElementById('fin-kosten-detail').innerHTML = [
+    ['Verzendkosten',verzend],['Commissie bol',comm],['Advertenties',ads],['Retouren',ret],['Overig',ov]
+  ].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">${k}</span><span class="c-r">${eur(v)}</span></div>`).join('');
+
+  const sorted=[...entries].sort((a,b)=>b.datum.localeCompare(a.datum));
+  document.getElementById('fin-tabel').innerHTML = sorted.map(d=>{const w=(d.omzet||0)-(d.kosten||0);const m2=(d.omzet||0)?((w/(d.omzet||0))*100).toFixed(1):0;return`<tr><td>${d.datum}</td><td class="c-g">${eur(d.omzet)}</td><td class="${w>=0?'c-g':'c-r'}">${eur(w)}</td><td class="c-a">${m2}%</td></tr>`;}).join('')||'<tr><td colspan="4" style="color:var(--muted);text-align:center">Geen data</td></tr>';
+}
+
+// ==================== KOSTEN ====================
+function saveKost(){
+  const naam=document.getElementById('kost-naam').value;
+  const bedrag=parseFloat(document.getElementById('kost-bedrag').value)||0;
+  const cat=document.getElementById('kost-cat').value;
+  if(!naam||!bedrag){alert('Vul naam en bedrag in');return;}
+  state.kosten.push({naam,bedrag,cat});
+  save();
+  document.getElementById('kost-naam').value='';
+  document.getElementById('kost-bedrag').value='';
+  renderKosten();
+}
+
+function renderKosten(){
+  const tot=state.kosten.reduce((s,k)=>s+(k.bedrag||0),0);
+  document.getElementById('kost-totaal').textContent=eur(tot);
+  document.getElementById('kost-per-dag').textContent=eur(tot/30);
+  const tb=document.getElementById('kost-tabel');
+  if(!state.kosten.length){tb.innerHTML='<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:1.5rem">Geen kosten</td></tr>';return;}
+  tb.innerHTML=state.kosten.map((k,i)=>`<tr><td>${k.naam}</td><td><span class="badge bg-b">${k.cat}</span></td><td class="c-r">${eur(k.bedrag)}</td><td style="color:var(--muted)">${eur(k.bedrag/30)}</td><td><button class="btn btn-r" onclick="delKost(${i})">✕</button></td></tr>`).join('');
+}
+
+function delKost(i){if(confirm('Verwijderen?')){state.kosten.splice(i,1);save();renderKosten();}}
+
+// ==================== ADS ====================
+function saveAds(){
+  const naam=document.getElementById('ads-naam').value;
+  const besteed=parseFloat(document.getElementById('ads-besteed').value)||0;
+  const omzet=parseFloat(document.getElementById('ads-omzet').value)||0;
+  const klikken=parseInt(document.getElementById('ads-klikken').value)||0;
+  const maand=document.getElementById('ads-maand').value;
+  if(!naam){alert('Vul naam in');return;}
+  state.ads.push({naam,besteed,omzet,klikken,maand});
+  save();
+  ['ads-naam','ads-besteed','ads-omzet','ads-klikken'].forEach(id=>document.getElementById(id).value='');
+  renderAds();
+}
+
+function renderAds(){
+  const tot_b=state.ads.reduce((s,a)=>s+(a.besteed||0),0);
+  const tot_o=state.ads.reduce((s,a)=>s+(a.omzet||0),0);
+  const roas=tot_b?( tot_o/tot_b).toFixed(2):0;
+  document.getElementById('ads-tot-besteed').textContent=eur(tot_b);
+  document.getElementById('ads-tot-omzet').textContent=eur(tot_o);
+  document.getElementById('ads-roas').textContent=roas+'x';
+  const tb=document.getElementById('ads-tabel');
+  if(!state.ads.length){tb.innerHTML='<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:1.5rem">Geen campagnes</td></tr>';return;}
+  tb.innerHTML=[...state.ads].reverse().map((a,i)=>{const r=a.besteed?(a.omzet/a.besteed).toFixed(2):0;return`<tr><td>${a.maand||'-'}</td><td>${a.naam}</td><td class="c-r">${eur(a.besteed)}</td><td class="c-g">${eur(a.omzet)}</td><td class="${parseFloat(r)>=2?'c-g':'c-r'}">${r}x</td><td>${a.klikken}</td><td><button class="btn btn-r" onclick="delAds(${state.ads.length-1-i})">✕</button></td></tr>`;}).join('');
+}
+
+function delAds(i){if(confirm('Verwijderen?')){state.ads.splice(i,1);save();renderAds();}}
+
+// ==================== RAPPORT ====================
+function renderRapportMaanden(){
+  const maanden=[...new Set(state.dagboek.map(d=>d.datum.slice(0,7)))].sort().reverse();
+  const sel=document.getElementById('rapp-maand');
+  const now=new Date().toISOString().slice(0,7);
+  sel.innerHTML=maanden.map(m=>`<option value="${m}">${m}</option>`).join('')||`<option value="${now}">${now}</option>`;
+}
+
+function genereerRapport(){
+  const maand=document.getElementById('rapp-maand').value;
+  if(!maand){alert('Selecteer een maand');return;}
+  const maandLabel=new Date(maand+'-01').toLocaleDateString('nl-NL',{year:'numeric',month:'long'});
+  const dagen=state.dagboek.filter(d=>d.datum.slice(0,7)===maand);
+  const omzet=dagen.reduce((s,d)=>s+(d.omzet||0),0);
+  const kosten=dagen.reduce((s,d)=>s+(d.kosten||0),0);
+  const winst=omzet-kosten;
+  const marge=omzet?((winst/omzet)*100).toFixed(1):0;
+  const verzend=dagen.reduce((s,d)=>s+(d.verzend||0),0);
+  const comm=dagen.reduce((s,d)=>s+(d.commissie||0),0);
+  const ads=dagen.reduce((s,d)=>s+(d.ads_k||0),0);
+  const ret=dagen.reduce((s,d)=>s+(d.retouren||0),0);
+  const totRoas=state.ads.filter(a=>a.maand===maand).reduce((s,a)=>s+(a.besteed||0),0);
+  const totRoasO=state.ads.filter(a=>a.maand===maand).reduce((s,a)=>s+(a.omzet||0),0);
+  const roas=totRoas?(totRoasO/totRoas).toFixed(2):0;
+  const totVrd=state.artikelen.reduce((s,a)=>s+((a.mag||0)+(a.bol||0)+(a.ond||0))*(a.ink||0),0);
+
+  document.getElementById('rapport-inhoud').innerHTML=`
+  <div id="printable-rapport">
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:1rem">
+    <div style="font-size:20px;font-weight:800;margin-bottom:4px">📊 Maandrapport — ${maandLabel}</div>
+    <div style="font-size:12px;color:var(--muted)">Gegenereerd op ${new Date().toLocaleDateString('nl-NL')} | LUXEVI Beheer</div>
+  </div>
+  <div class="report-section">
+    <div class="report-title">💰 Winst & Verlies — ${maandLabel}</div>
+    <div class="report-grid">
+      <div class="rmetric"><div class="rm-l">Omzet</div><div class="rm-v c-g">${eur(omzet)}</div></div>
+      <div class="rmetric"><div class="rm-l">Kosten</div><div class="rm-v c-r">${eur(kosten)}</div></div>
+      <div class="rmetric"><div class="rm-l">Winst</div><div class="rm-v ${winst>=0?'c-g':'c-r'}">${eur(winst)}</div></div>
+      <div class="rmetric"><div class="rm-l">Marge</div><div class="rm-v c-a">${marge}%</div></div>
+      <div class="rmetric"><div class="rm-l">Ingevoerde dagen</div><div class="rm-v c-b">${dagen.length}</div></div>
+    </div>
+    <div style="background:var(--bg3);border-radius:10px;padding:1rem;font-size:13px">
+      <div style="display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Verzendkosten</span><span class="c-r">${eur(verzend)}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Commissie bol.com</span><span class="c-r">${eur(comm)}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Advertenties</span><span class="c-r">${eur(ads)}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:.35rem 0"><span style="color:var(--muted)">Retouren</span><span class="c-r">${eur(ret)}</span></div>
+    </div>
+  </div>
+  <div class="report-section">
+    <div class="report-title">📦 Voorraadwaarde</div>
+    <div class="report-grid">
+      <div class="rmetric"><div class="rm-l">Totale waarde</div><div class="rm-v c-a">${eur(totVrd)}</div></div>
+      <div class="rmetric"><div class="rm-l">Artikelen</div><div class="rm-v">${state.artikelen.length}</div></div>
+      <div class="rmetric"><div class="rm-l">Magazijn stuks</div><div class="rm-v c-b">${state.artikelen.reduce((s,a)=>s+(a.mag||0),0)}</div></div>
+      <div class="rmetric"><div class="rm-l">Bol LVB stuks</div><div class="rm-v c-g">${state.artikelen.reduce((s,a)=>s+(a.bol||0),0)}</div></div>
+    </div>
+    <table><thead><tr><th>Artikel</th><th>Magazijn</th><th>Bol</th><th>Onderweg</th><th>Totaal</th><th>Waarde</th></tr></thead>
+    <tbody>${state.artikelen.map(a=>{const t=(a.mag||0)+(a.bol||0)+(a.ond||0);return`<tr><td>${a.naam}</td><td>${a.mag||0}</td><td>${a.bol||0}</td><td>${a.ond||0}</td><td><strong>${t}</strong></td><td>${eur(t*(a.ink||0))}</td></tr>`;}).join('')||'<tr><td colspan="6" style="color:var(--muted)">Geen artikelen</td></tr>'}</tbody></table>
+  </div>
+  <div class="report-section">
+    <div class="report-title">📢 Advertentie ROI — ${maandLabel}</div>
+    <div class="report-grid">
+      <div class="rmetric"><div class="rm-l">Totaal besteed</div><div class="rm-v c-r">${eur(totRoas)}</div></div>
+      <div class="rmetric"><div class="rm-l">Omzet via ads</div><div class="rm-v c-g">${eur(totRoasO)}</div></div>
+      <div class="rmetric"><div class="rm-l">ROAS</div><div class="rm-v ${parseFloat(roas)>=2?'c-g':'c-r'}">${roas}x</div></div>
+    </div>
+  </div>
+  </div>`;
+}
+
+function printRapport(){window.print();}
+
+// ==================== INIT ====================
+document.getElementById('dag-datum').value = today();
+renderDashboard();
+updateArtSelect();
+</script>
+</body>
+</html>
